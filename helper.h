@@ -2,6 +2,14 @@
 #define HELPER_H
 
 #include <stddef.h>
+#include <unistd.h>
+#include <stdbool.h>
+
+#define HOST "63.32.125.183"
+#define PORT 8081
+
+// Checks if the server closed the connection
+bool has_connection_close(const char *buf);
 
 // Reads a line from stdin (allocates buffer with malloc)
 // Returns NULL on EOF

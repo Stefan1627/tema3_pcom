@@ -1,13 +1,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "client.h"
 #include "commands.h"
 #include "requests.h"
 #include "parson.h"
 #include "helper.h"
 #include "routes.h"   // see next section
 
-int handle_login_admin(void) {
+char *handle_login_admin(char *body, int *sockfd) {
 	char *username = helper_readline();
 	char *password = helper_readline();
 
@@ -15,33 +16,40 @@ int handle_login_admin(void) {
     JSON_Object *o    = json_value_get_object(root);
     json_object_set_string(o, "username", username);
     json_object_set_string(o, "password", password);
-    char *body = json_serialize_to_string(root);
+    body = json_serialize_to_string(root);
 
-    char *resp = request_post(ROUTE_ADMIN_LOGIN, body);
+    char *resp = request_post(ROUTE_ADMIN_LOGIN, body, PAYLOAD_APP_JSON, *sockfd);
     if (!resp) {
         fprintf(stderr, "Error: no response\n");
     } else {
+		if (has_connection_close(resp)) {
+			close(*sockfd);
+			*sockfd = -1;
+			*sockfd = setup_conn();
+		}
         printf("%s\n", resp);
         free(resp);
     }
 
-    json_free_serialized_string(body);
+    // json_free_serialized_string(body);
     json_value_free(root);
-    return 0;
+    return body;
 }
+
+// int handle_add_user(void) {
+
+// }
 
 // Add more handlers: handle_add_movie, handle_list_movies, etc.
 
-int commands_dispatch(char *cmd) {
+char *commands_dispatch(char *cmd, char *body, int *sockfd) {
     if (!cmd) return 0;
     if (strcmp(cmd, "login_admin") == 0) {
-        return handle_login_admin();
-    }
-    // else if (strcmp(tokens[0], "add_movie")==0) { … }
-    // else if …  
+        return handle_login_admin(body, sockfd);
+    }  
 
     else if (strcmp(cmd, "exit") == 0) {
-        return 1;
+        return NULL;
     }
 
     else {

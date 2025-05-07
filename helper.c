@@ -3,6 +3,11 @@
 #include <string.h>
 #include "helper.h"
 #include <unistd.h>
+#include <stdbool.h>
+
+bool has_connection_close(const char *buf) {
+    return strstr(buf, "\r\nConnection: close\r\n") != NULL;
+}
 
 char *helper_readline(void) {
     size_t cap = 0;

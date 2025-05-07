@@ -1,16 +1,15 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#define HOST "63.32.125.183"
-#define PORT 8081
+#define SA struct sockaddr
 
-// Initializes the client (e.g., reads config, sets up base URL)
-void client_init(const char *server_host, int server_port);
+// Opens a socket and connects to a server
+int setup_conn(void);
 
 // Reads a line from stdin and dispatches it
-void client_run(void);
+void client_run(int *sockfd);
 
 // Cleans up any allocated resources
-void client_cleanup(void);
+void client_cleanup(int sockfd);
 
 #endif // CLIENT_H
