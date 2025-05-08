@@ -3,10 +3,35 @@
 #include <string.h>
 #include "helper.h"
 #include <unistd.h>
-#include <stdbool.h>
 
-bool has_connection_close(const char *buf) {
-    return strstr(buf, "\r\nConnection: close\r\n") != NULL;
+int get_status(char *resp) {
+	int status = 0;
+	char *p = strstr(resp, "HTTP/1.1 ");
+    if (p) status = atoi(p + 9);
+	return status;
+}
+
+char *extract_cookie(char *resp) {
+    char *cookie = NULL;
+    char *start = strstr(resp, "Set-Cookie: ");
+    if (start != NULL) {
+        start += strlen("Set-Cookie: ");
+        char *end = strstr(start, "\r\n");
+        if (end != NULL) {
+            // If there’s a semicolon before the CRLF, cut there
+            char *semi = memchr(start, ';', end - start);
+            if (semi != NULL) {
+                end = semi;
+            }
+            size_t len = end - start;
+            cookie = malloc(len + 1);
+            if (cookie) {
+                memcpy(cookie, start, len);
+                cookie[len] = '\0';
+            }
+        }
+    }
+    return cookie;
 }
 
 char *helper_readline(void) {

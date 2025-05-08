@@ -8,7 +8,7 @@
 char *request_get(const char *route);
 
 // Sends a POST with JSON body; returns response body.
-char *request_post(const char *route, const char *json_body, char *payload, int sockfd);
+char *request_post(const char *route, const char *json_body, char *payload, int sockfd, const char *extra_hdr);
 
 // Similarly for PUT, DELETE, etc.
 char *request_put(const char *route, const char *json_body);

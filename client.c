@@ -9,9 +9,7 @@
 #include "commands.h"
 
 int main(int argc, char *argv[]) {
-    int sockfd;
-
-	sockfd = setup_conn();
+    int sockfd = -1;
 
     client_run(&sockfd);
     client_cleanup(sockfd);
@@ -41,26 +39,23 @@ int setup_conn(void) {
         != 0) {
         printf("connection with the server failed...\n");
         exit(0);
-    } else {
-        printf("connected to the server..\n");
-	}
+    }
 
 	return sockfd;
 }
 
 void client_run(int *sockfd) {
     char *cmd = NULL;
-	char *body = NULL;
+	char *cookie = NULL;
     while ((cmd = helper_readline()) != NULL) {
         // TODO: parse command, call appropriate request
-		printf("Received line: %s\n", cmd);
-		if (commands_dispatch(cmd, body, sockfd) == NULL) {
+		if (commands_dispatch(cmd, &cookie, sockfd) == EXIT) {
 			free(cmd);
 			break;
 		}
         free(cmd);
-		free(body);
     }
+	free(cookie);
 }
 
 void client_cleanup(int sockfd) {

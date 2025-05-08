@@ -2,6 +2,7 @@
 #define ROUTES_H
 
 #define ROUTE_ADMIN_LOGIN    "/api/v1/tema/admin/login"
+#define ROUTE_ADD_USER       "/api/v1/tema/admin/users"
 #define ROUTE_USER_LOGIN     "/api/v1/tema/auth/login"
 #define ROUTE_MOVIES_LIST    "/api/v1/tema/library/movies"
 #define PAYLOAD_APP_JSON     "application/json"

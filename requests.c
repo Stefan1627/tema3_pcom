@@ -16,7 +16,11 @@ char *request_get(const char *route) {
     return strdup("{ \"status\": \"ok\" }");
 }
 
-char *request_post(const char *route, const char *json_body, char *payload, int sockfd) {
+char *request_post(const char *route,
+				   const char *json_body,
+				   char *payload,
+				   int sockfd,
+				   const char *extra_hdr) {
     // TODO: HTTP POST
 	char request[4096];
     snprintf(request, sizeof(request),
@@ -24,10 +28,13 @@ char *request_post(const char *route, const char *json_body, char *payload, int 
         "Host: %s\r\n"
         "Content-Type: %s\r\n"
         "Content-Length: %zu\r\n"
+		"%s"
         "Connection: close\r\n"
         "\r\n"
         "%s",
-        route, HOST, payload, strlen(json_body), json_body);
+        route, HOST, payload, strlen(json_body),
+		extra_hdr ? extra_hdr : "",
+		json_body);
 
     if (write(sockfd, request, strlen(request)) < 0) {
         perror("write");
