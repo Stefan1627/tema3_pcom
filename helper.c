@@ -2,7 +2,63 @@
 #include <stdlib.h>
 #include <string.h>
 #include "helper.h"
+#include "parson.h"
 #include <unistd.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "parson.h"
+
+char *strip_headers(const char *resp) {
+    const char *sep = strstr(resp, "\r\n\r\n");
+    if (!sep) {
+        fprintf(stderr, "No header/body separator found in HTTP response\n");
+        return NULL;
+    }
+    sep += 4;  /* skip past the "\r\n\r\n" */
+    return strdup(sep);
+}
+
+void print_users(const char *resp) {
+    /* Parse the JSON text */
+    JSON_Value *root_val = json_parse_string(resp);
+    if (!root_val) {
+        fprintf(stderr, "Invalid JSON\n");
+        return;
+    }
+
+    JSON_Object *root_obj = json_value_get_object(root_val);
+    if (!root_obj) {
+        fprintf(stderr, "Expected JSON object at root\n");
+        json_value_free(root_val);
+        return;
+    }
+
+    /* Get the "users" array */
+    JSON_Array *users = json_object_get_array(root_obj, "users");
+    if (!users) {
+        fprintf(stderr, "No \"users\" array found\n");
+        json_value_free(root_val);
+        return;
+    }
+
+    size_t count = json_array_get_count(users);
+    for (size_t i = 0; i < count; i++) {
+        JSON_Object *user = json_array_get_object(users, i);
+        if (!user) continue;
+
+        const char *username = json_object_get_string(user, "username");
+        const char *password = json_object_get_string(user, "password");
+        if (!username) username = "(null)";
+        if (!password) password = "(null)";
+
+        /* Print as “#1 test:test” etc. */
+        printf("#%zu %s:%s\n", i + 1, username, password);
+    }
+
+    json_value_free(root_val);
+}
+
 
 int get_status(char *resp) {
 	int status = 0;

@@ -47,15 +47,17 @@ int setup_conn(void) {
 void client_run(int *sockfd) {
     char *cmd = NULL;
 	char *cookie = NULL;
+	char *token = NULL;
     while ((cmd = helper_readline()) != NULL) {
         // TODO: parse command, call appropriate request
-		if (commands_dispatch(cmd, &cookie, sockfd) == EXIT) {
+		if (commands_dispatch(cmd, &cookie, &token, sockfd) == EXIT) {
 			free(cmd);
 			break;
 		}
         free(cmd);
     }
-	free(cookie);
+	if (cookie)
+		free(cookie);
 }
 
 void client_cleanup(int sockfd) {

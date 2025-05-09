@@ -9,6 +9,10 @@
 #define PORT 8081
 #define EXIT 16
 
+char *strip_headers(const char *resp);
+
+void print_users(const char *resp);
+
 int get_status(char *resp);
 
 char *extract_cookie(char *resp);
