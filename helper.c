@@ -19,6 +19,41 @@ char *strip_headers(const char *resp) {
     return strdup(sep);
 }
 
+char *extract_token(const char *resp) {
+    if (!resp) return NULL;
+
+    JSON_Value *root_value = json_parse_string(resp);
+    if (!root_value) {
+        fprintf(stderr, "Error: failed to parse JSON.\n");
+        return NULL;
+    }
+
+    JSON_Object *root_obj = json_value_get_object(root_value);
+    if (!root_obj) {
+        fprintf(stderr, "Error: JSON root is not an object.\n");
+        json_value_free(root_value);
+        return NULL;
+    }
+
+    const char *token = json_object_get_string(root_obj, "token");
+    if (!token) {
+        fprintf(stderr, "Error: no \"token\" field in JSON.\n");
+        json_value_free(root_value);
+        return NULL;
+    }
+
+    // Duplicate the token so it survives after we free the JSON_Value
+    char *token_copy = malloc(strlen(token) + 1);
+    if (token_copy) {
+        strcpy(token_copy, token);
+    } else {
+        fprintf(stderr, "Error: failed to allocate memory for token.\n");
+    }
+
+    json_value_free(root_value);
+    return token_copy;
+}
+
 void print_users(const char *resp) {
     /* Parse the JSON text */
     JSON_Value *root_val = json_parse_string(resp);

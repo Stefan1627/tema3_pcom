@@ -12,8 +12,12 @@
 
 char *request_get(const char *route,
 				  int sockfd,
-				  const char *extra_hdr)
+				  const char *extra_hdr,
+				  const char *extra_path)
 {
+	char path[512];
+	snprintf(path, sizeof(path), "%s/%s", route, extra_path);
+
 	char request[4096];
 	snprintf(request, sizeof(request),
 			 "GET %s HTTP/1.1\r\n"
@@ -21,9 +25,11 @@ char *request_get(const char *route,
 			 "%s"
 			 "Connection: close\r\n"
 			 "\r\n",
-			 route,
+			 extra_path ? path : route,
 			 HOST,
 			 extra_hdr ? extra_hdr : "");
+
+	printf("%s\n", request);
 
 	/* Send it */
 	if (write(sockfd, request, strlen(request)) < 0)

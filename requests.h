@@ -5,7 +5,7 @@
 
 // Sends a GET to the given route (e.g., "/movies").
 // Returns response body (malloc’d) or NULL on error.
-char *request_get(const char *route, int sockfd, const char *extra_hdr);
+char *request_get(const char *route, int sockfd, const char *extra_hdr, const char *extra_path);
 
 // Sends a POST with JSON body; returns response body.
 char *request_post(const char *route, const char *json_body, char *payload, int sockfd, const char *extra_hdr);

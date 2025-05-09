@@ -11,7 +11,195 @@
 
 #define HDR_COOKIE_SZ 256
 
-int handle_logout(char **cookie, int *sockfd) {
+int handle_delete_movie(char **cookie, char **token, int *sockfd) {
+	char *id = helper_readline();
+
+	if (id == NULL) {
+		return -1;
+	}
+
+	char *hdr_cookie = malloc(HDR_COOKIE_SZ);
+	if (hdr_cookie == NULL) {
+		printf("ERROR: unable to allocate memory for cookie\n");
+		return -1;
+	}
+
+	snprintf(hdr_cookie, HDR_COOKIE_SZ,
+		"Authorization: Bearer %s\r\n", *token);
+
+	char *resp = request_delete(ROUTE_MANAGE_MOVIE, id, *sockfd, hdr_cookie);
+	if (!resp) {
+        fprintf(stderr, "Error: no response\n");
+		free(resp);
+		free(hdr_cookie);
+		return -1;
+    } else {
+		int status = get_status(resp);
+		if (status == 200) {
+			printf("SUCCESS: Film șters cu succes\n");
+		}
+        free(resp);
+    }
+	return 0;
+}
+
+int handle_add_movie(char **cookie, char **token, int *sockfd) {
+	char *title = helper_readline();
+	int year = atoi(helper_readline());
+	char *description = helper_readline();
+	float rating = atof(helper_readline());
+
+	if (strlen(title) == 0 || strlen(description) == 0) {
+		printf("Error: All fields are required.\n");
+		return -1;
+	}
+
+	char *hdr_cookie = malloc(HDR_COOKIE_SZ);
+	if (hdr_cookie == NULL) {
+		printf("ERROR: unable to allocate memory for cookie\n");
+		return -1;
+	}
+
+	snprintf(hdr_cookie, HDR_COOKIE_SZ,
+		"Authorization: Bearer %s\r\n", *token);
+
+	JSON_Value *root = json_value_init_object();
+	JSON_Object *o = json_value_get_object(root);
+	json_object_set_string(o, "title", title);
+	json_object_set_number(o, "year", year);
+	json_object_set_string(o, "description", description);
+	json_object_set_number(o, "rating", rating);
+	char *body = json_serialize_to_string(root);
+
+	char *resp = request_post(ROUTE_MANAGE_MOVIE, body, PAYLOAD_APP_JSON, *sockfd, hdr_cookie);
+    if (!resp) {
+        fprintf(stderr, "Error: no response\n");
+		free(resp);
+		free(hdr_cookie);
+		json_free_serialized_string(body);
+		json_value_free(root);
+		return -1;
+    } else {
+		printf("%s\n", resp);
+		int status = get_status(resp);
+		if (status == 200) {
+			printf("SUCCESS: Film adăugat\n");
+        	*cookie = strdup(extract_cookie(resp));
+		}
+        free(resp);
+    }
+
+	return 0;
+}
+
+int handle_get_movie(char **cookie, char **token, int *sockfd) {
+	char *movie_id = helper_readline();
+
+	if (movie_id == NULL) {
+		return -1;
+	}
+
+	char *hdr_cookie = malloc(HDR_COOKIE_SZ);
+	if (hdr_cookie == NULL) {
+		printf("ERROR: unable to allocate memory for cookie\n");
+		return -1;
+	}
+
+	snprintf(hdr_cookie, HDR_COOKIE_SZ,
+		"Authorization: Bearer %s\r\n", *token);
+
+		char *resp = request_get(ROUTE_MANAGE_MOVIE, *sockfd, hdr_cookie, NULL);
+		if (!resp) {
+			fprintf(stderr, "Error: no response\n");
+			free(resp);
+			free(hdr_cookie);
+			return -1;
+		} else {
+			printf("%s\n", resp);
+			// int status = get_status(resp);
+			// if (status == 200) {
+			// 	printf("SUCCESS: Token JWT primit\n");
+			// 	char *body = strip_headers(resp);
+			// 	if (body) {
+			// 		*token = strdup(extract_token(body));
+			// 		free(body);
+			// 	}
+			// }
+			free(resp);
+		}
+	
+		free(hdr_cookie);
+		return 0;
+}
+
+int handle_get_movies(char **cookie, char **token, int *sockfd) {
+	char *hdr_cookie = malloc(HDR_COOKIE_SZ);
+	if (hdr_cookie == NULL) {
+		printf("ERROR: unable to allocate memory for cookie\n");
+		return -1;
+	}
+
+	snprintf(hdr_cookie, HDR_COOKIE_SZ,
+		"Authorization: Bearer %s\r\n", *token);
+
+	char *resp = request_get(ROUTE_MANAGE_MOVIE, *sockfd, hdr_cookie, NULL);
+	if (!resp) {
+        fprintf(stderr, "Error: no response\n");
+		free(resp);
+		free(hdr_cookie);
+		return -1;
+    } else {
+		printf("%s\n", resp);
+		// int status = get_status(resp);
+		// if (status == 200) {
+		// 	printf("SUCCESS: Token JWT primit\n");
+		// 	char *body = strip_headers(resp);
+		// 	if (body) {
+    	// 		*token = strdup(extract_token(body));
+    	// 		free(body);
+		// 	}
+		// }
+        free(resp);
+    }
+
+	free(hdr_cookie);
+	return 0;
+}
+
+int handle_get_access(char **cookie, char **token, int *sockfd) {
+	char *hdr_cookie = malloc(HDR_COOKIE_SZ);
+	if (hdr_cookie == NULL) {
+		printf("ERROR: unable to allocate memory for cookie\n");
+		return -1;
+	}
+
+	snprintf(hdr_cookie, HDR_COOKIE_SZ,
+		"Cookie: %s\r\n", *cookie);
+
+	char *resp = request_get(ROUTE_GET_ACCESS, *sockfd, hdr_cookie, NULL);
+	if (!resp) {
+        fprintf(stderr, "Error: no response\n");
+		free(resp);
+		free(hdr_cookie);
+		return -1;
+    } else {
+		int status = get_status(resp);
+		if (status == 200) {
+			printf("SUCCESS: Token JWT primit\n");
+			char *body = strip_headers(resp);
+			if (body) {
+    			*token = strdup(extract_token(body));
+    			free(body);
+			}
+		}
+        free(resp);
+    }
+
+	free(hdr_cookie);
+	return 0;
+}
+
+int handle_logout(char **cookie, char **token, int *sockfd) {
 	if (cookie == NULL || sockfd == NULL) {
 		return -1;
 	}
@@ -25,7 +213,7 @@ int handle_logout(char **cookie, int *sockfd) {
 	snprintf(hdr_cookie, HDR_COOKIE_SZ,
 		"Cookie: %s\r\n", *cookie);
 
-	char *resp = request_get(ROUTE_USER_LOGOUT, *sockfd, hdr_cookie);
+	char *resp = request_get(ROUTE_USER_LOGOUT, *sockfd, hdr_cookie, NULL);
 	if (!resp) {
         fprintf(stderr, "Error: no response\n");
 		free(resp);
@@ -34,6 +222,8 @@ int handle_logout(char **cookie, int *sockfd) {
     } else {
 		int status = get_status(resp);
 		if (status == 200) {
+			free(*token);
+			*token = NULL;
 			free(*cookie);
 			*cookie = NULL;
 			printf("SUCCESS: Utilizator delogat\n");
@@ -55,7 +245,7 @@ int handle_logout_admin(char **cookie, int *sockfd) {
 	snprintf(hdr_cookie, HDR_COOKIE_SZ,
 		"Cookie: %s\r\n", *cookie);
 
-	char *resp = request_get(ROUTE_ADMIN_LOGOUT, *sockfd, hdr_cookie);
+	char *resp = request_get(ROUTE_ADMIN_LOGOUT, *sockfd, hdr_cookie, NULL);
 	if (!resp) {
         fprintf(stderr, "Error: no response\n");
 		free(resp);
@@ -154,7 +344,7 @@ int handle_get_users(char **cookie, int *sockfd) {
 	snprintf(hdr_cookie, HDR_COOKIE_SZ,
 		"Cookie: %s\r\n", *cookie);
 
-	char *resp = request_get(ROUTE_MANAGE_USER, *sockfd, hdr_cookie);
+	char *resp = request_get(ROUTE_MANAGE_USER, *sockfd, hdr_cookie, NULL);
 	if (!resp) {
         fprintf(stderr, "Error: no response\n");
 		free(resp);
@@ -285,7 +475,17 @@ int commands_dispatch(char *cmd, char **cookie, char **token, int *sockfd) {
 	} else if (strcmp(cmd, "logout_admin") == 0) {
 		return handle_logout_admin(cookie, sockfd);
 	} else if (strcmp(cmd, "logout") == 0) {
-		return handle_logout(cookie, sockfd);
+		return handle_logout(cookie, token, sockfd);
+	} else if (strcmp(cmd, "get_access") == 0) {
+		return handle_get_access(cookie, token, sockfd);
+	} else if (strcmp(cmd, "get_movies") == 0) {
+		return handle_get_movies(cookie, token, sockfd);
+	} else if (strcmp(cmd, "get_movie") == 0) {
+		return handle_get_movie(cookie, token, sockfd);
+	} else if (strcmp(cmd, "add_movie") == 0) {
+		return handle_add_movie(cookie, token, sockfd);
+	} else if (strcmp(cmd, "delete_movie") == 0) {
+		return handle_delete_movie(cookie, token, sockfd);
 	} else {
         printf("Unknown command: %s\n", cmd);
         return 0;

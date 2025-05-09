@@ -11,6 +11,8 @@
 
 char *strip_headers(const char *resp);
 
+char *extract_token(const char *resp);
+
 void print_users(const char *resp);
 
 int get_status(char *resp);
