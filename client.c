@@ -1,14 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
 #include "client.h"
 #include "helper.h"
 #include "requests.h"
 #include "commands.h"
 
-bool is_logged_in = false;
 int client_socket = -1;
 char *cookie = NULL;
 char *token = NULL;
@@ -41,27 +35,27 @@ int commands_dispatch(char *cmd) {
 	} else if (strcmp(cmd, "get_access") == 0) {
 		return handle_get_access(&cookie, &token, client_socket);
 	} else if (strcmp(cmd, "get_movies") == 0) {
-		return handle_get_movies(&cookie, &token, client_socket);
+		return handle_get_movies(&token, client_socket);
 	} else if (strcmp(cmd, "get_movie") == 0) {
-		return handle_get_movie(&cookie, &token, client_socket);
+		return handle_get_movie(&token, client_socket);
 	} else if (strcmp(cmd, "add_movie") == 0) {
-		return handle_add_movie(&cookie, &token, client_socket);
+		return handle_add_movie(&token, client_socket);
 	} else if (strcmp(cmd, "delete_movie") == 0) {
-		return handle_delete_movie(&cookie, &token, client_socket);
+		return handle_delete_movie(&token, client_socket);
 	} else if(strcmp(cmd, "update_movie") == 0) {
-		return handle_update_movie(&cookie, &token, client_socket);
+		return handle_update_movie(&token, client_socket);
 	} else if (strcmp(cmd, "get_collections") == 0) {
-		return handle_get_collections(&cookie, &token, client_socket);
+		return handle_get_collections(&token, client_socket);
 	} else if (strcmp(cmd, "get_collection") == 0) {
-		return handle_get_collection(&cookie, &token, client_socket);
+		return handle_get_collection(&token, client_socket);
 	} else if (strcmp(cmd, "add_collection") == 0) {
-		return handle_add_collection(&cookie, &token, client_socket);
+		return handle_add_collection(&token, client_socket);
 	} else if (strcmp(cmd, "delete_collection") == 0) {
-		return handle_delete_collection(&cookie, &token, client_socket);
+		return handle_delete_collection(&token, client_socket);
 	} else if (strcmp(cmd, "add_movie_to_collection") == 0) {
-		return handle_add_movie_to_collection(&cookie, &token, client_socket);
+		return handle_add_movie_to_collection(&token, client_socket);
 	} else if (strcmp(cmd, "delete_movie_from_collection") == 0) {
-		return handle_delete_movie_from_collection(&cookie, &token, client_socket);
+		return handle_delete_movie_from_collection(&token, client_socket);
 	} else {
         printf("Unknown command: %s\n", cmd);
         return 0;
@@ -84,12 +78,10 @@ void client_run(void) {
 		if (r == EXIT)
   			break;
     }
-	if (cookie)
-		free(cookie);
 }
 
 void client_cleanup() {
-    // TODO: cleanup any global state
 	close(client_socket);
 	free(cookie);
+	free(token);
 }

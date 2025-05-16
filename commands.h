@@ -5,19 +5,19 @@
 #define CODE_SZ 4
 
 /* Movie collection handlers */
-int handle_add_movie_to_collection(char **cookie, char **token, int sockfd);
-int handle_delete_movie_from_collection(char **cookie, char **token, int sockfd);
-int handle_add_collection(char **cookie, char **token, int sockfd);
-int handle_get_collection(char **cookie, char **token, int sockfd);
-int handle_get_collections(char **cookie, char **token, int sockfd);
-int handle_delete_collection(char **cookie, char **token, int sockfd);
+int handle_add_movie_to_collection(char **token, int sockfd);
+int handle_delete_movie_from_collection(char **token, int sockfd);
+int handle_add_collection(char **token, int sockfd);
+int handle_get_collection(char **token, int sockfd);
+int handle_get_collections(char **token, int sockfd);
+int handle_delete_collection(char **token, int sockfd);
 
 /* Movie handlers */
-int handle_add_movie(char **cookie, char **token, int sockfd);
-int handle_get_movie(char **cookie, char **token, int sockfd);
-int handle_get_movies(char **cookie, char **token, int sockfd);
-int handle_update_movie(char **cookie, char **token, int sockfd);
-int handle_delete_movie(char **cookie, char **token, int sockfd);
+int handle_add_movie(char **token, int sockfd);
+int handle_get_movie(char **token, int sockfd);
+int handle_get_movies(char **token, int sockfd);
+int handle_update_movie(char **token, int sockfd);
+int handle_delete_movie(char **token, int sockfd);
 
 /* Authentication & access */
 int handle_get_access(char **cookie, char **token, int sockfd);
