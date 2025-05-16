@@ -7,9 +7,6 @@
 #include "helper.h"
 #include "parson.h"
 
-// You can use libcurl, sockets, or any HTTP library
-// Here are stubs:
-
 char *request_get(const char *route,
 				  int sockfd,
 				  const char *extra_hdr,
@@ -28,8 +25,6 @@ char *request_get(const char *route,
 			 extra_path ? path : route,
 			 HOST,
 			 extra_hdr ? extra_hdr : "");
-
-	printf("%s\n", request);
 
 	/* Send it */
 	if (write(sockfd, request, strlen(request)) < 0)
@@ -100,19 +95,74 @@ char *request_post(const char *route,
 	return buf;
 }
 
-char *request_put(const char *route, const char *json_body) {
-    // TODO: HTTP PUT
-    return strdup("{ \"status\": \"updated\" }");
+char *request_put(const char *route_base,
+                  const char *json_body,
+				  const char *payload,
+                  int sockfd,
+				  const char *movie_id,
+                  const char *extra_hdr)
+{
+    /* Prepare the HTTP PUT request */
+    char request[4096];
+    size_t body_len = strlen(json_body);
+
+	/* Build the full path: route_base + "/" + username */
+	char path[512];
+	snprintf(path, sizeof(path), "%s/%s", route_base, movie_id);
+
+    int req_len = snprintf(request, sizeof(request),
+        "PUT %s HTTP/1.1\r\n"
+        "Host: %s\r\n"
+        "Content-Type: %s\r\n"
+        "Content-Length: %zu\r\n"
+        "%s"
+        "Connection: close\r\n"
+        "\r\n"
+        "%s",
+        path,
+        HOST,
+		payload,
+        body_len,
+        extra_hdr ? extra_hdr : "",
+        json_body);
+
+    if (req_len < 0 || req_len >= (int)sizeof(request)) {
+        fprintf(stderr, "request_put: request buffer overflow\n");
+        return NULL;
+    }
+
+    /* Send it */
+    if (write(sockfd, request, req_len) < 0) {
+        perror("write");
+        return NULL;
+    }
+
+    /* Read the response */
+    char *buf = malloc(8192);
+    if (!buf) {
+        perror("malloc");
+        return NULL;
+    }
+
+    ssize_t n = read(sockfd, buf, 8191);
+    if (n < 0) {
+        perror("read");
+        free(buf);
+        return NULL;
+    }
+    buf[n] = '\0';
+
+    return buf;
 }
 
 char *request_delete(const char *route_base,
-					 const char *username,
+					 const char *id,
 					 int sockfd,
 					 const char *extra_hdr)
 {
 	/* Build the full path: route_base + "/" + username */
 	char path[512];
-	snprintf(path, sizeof(path), "%s/%s", route_base, username);
+	snprintf(path, sizeof(path), "%s/%s", route_base, id);
 
 	char request[4096];
 	int req_len = snprintf(request, sizeof(request),

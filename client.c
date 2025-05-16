@@ -8,60 +8,88 @@
 #include "requests.h"
 #include "commands.h"
 
-int main(int argc, char *argv[]) {
-    int sockfd = -1;
+bool is_logged_in = false;
+int client_socket = -1;
+char *cookie = NULL;
+char *token = NULL;
 
-    client_run(&sockfd);
-    client_cleanup(sockfd);
+int commands_dispatch(char *cmd) {
+    if (!cmd) return -1;
+
+	if (strcmp(cmd, "exit") == 0) {
+		return EXIT;
+	}
+
+	close(client_socket);
+	client_socket = -1;
+	client_socket = setup_conn();
+
+    if (strcmp(cmd, "login_admin") == 0) {
+        return handle_login_admin(&cookie, client_socket);
+    } else if (strcmp(cmd, "add_user") == 0) {
+		return handle_add_user(&cookie, client_socket);
+	} else if (strcmp(cmd, "get_users") == 0) {
+		return handle_get_users(&cookie, client_socket);
+	} else if (strcmp(cmd, "delete_user") == 0) {
+		return handle_delete_user(&cookie, client_socket);
+	} else if (strcmp(cmd, "login") == 0) {
+		return handle_login(&cookie, client_socket);
+	} else if (strcmp(cmd, "logout_admin") == 0) {
+		return handle_logout_admin(&cookie, client_socket);
+	} else if (strcmp(cmd, "logout") == 0) {
+		return handle_logout(&cookie, &token, client_socket);
+	} else if (strcmp(cmd, "get_access") == 0) {
+		return handle_get_access(&cookie, &token, client_socket);
+	} else if (strcmp(cmd, "get_movies") == 0) {
+		return handle_get_movies(&cookie, &token, client_socket);
+	} else if (strcmp(cmd, "get_movie") == 0) {
+		return handle_get_movie(&cookie, &token, client_socket);
+	} else if (strcmp(cmd, "add_movie") == 0) {
+		return handle_add_movie(&cookie, &token, client_socket);
+	} else if (strcmp(cmd, "delete_movie") == 0) {
+		return handle_delete_movie(&cookie, &token, client_socket);
+	} else if(strcmp(cmd, "update_movie") == 0) {
+		return handle_update_movie(&cookie, &token, client_socket);
+	} else if (strcmp(cmd, "get_collections") == 0) {
+		return handle_get_collections(&cookie, &token, client_socket);
+	} else if (strcmp(cmd, "get_collection") == 0) {
+		return handle_get_collection(&cookie, &token, client_socket);
+	} else if (strcmp(cmd, "add_collection") == 0) {
+		return handle_add_collection(&cookie, &token, client_socket);
+	} else if (strcmp(cmd, "delete_collection") == 0) {
+		return handle_delete_collection(&cookie, &token, client_socket);
+	} else if (strcmp(cmd, "add_movie_to_collection") == 0) {
+		return handle_add_movie_to_collection(&cookie, &token, client_socket);
+	} else if (strcmp(cmd, "delete_movie_from_collection") == 0) {
+		return handle_delete_movie_from_collection(&cookie, &token, client_socket);
+	} else {
+        printf("Unknown command: %s\n", cmd);
+        return 0;
+    }
+}
+
+int main(int argc, char *argv[]) {
+	setvbuf(stdout, NULL, _IONBF, 0);
+    client_run();
+    client_cleanup();
 
     return 0;
 }
 
-int setup_conn(void) {
-	int sockfd;
-    struct sockaddr_in servaddr;
-
-    // socket create and verification
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd == -1) {
-        printf("socket creation failed...\n");
-        exit(0);
-    }
-    bzero(&servaddr, sizeof(servaddr));
-
-    // assign IP, PORT
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = inet_addr(HOST);
-    servaddr.sin_port = htons(PORT);
-
-    // connect the client socket to server socket
-    if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr))
-        != 0) {
-        printf("connection with the server failed...\n");
-        exit(0);
-    }
-
-	return sockfd;
-}
-
-void client_run(int *sockfd) {
+void client_run(void) {
     char *cmd = NULL;
-	char *cookie = NULL;
-	char *token = NULL;
     while ((cmd = helper_readline()) != NULL) {
-        // TODO: parse command, call appropriate request
-		if (commands_dispatch(cmd, &cookie, &token, sockfd) == EXIT) {
-			free(cmd);
-			break;
-		}
-        free(cmd);
+        int r = commands_dispatch(cmd);
+		free(cmd);
+		if (r == EXIT)
+  			break;
     }
 	if (cookie)
 		free(cookie);
 }
 
-void client_cleanup(int sockfd) {
+void client_cleanup() {
     // TODO: cleanup any global state
-	printf("Disconnecting...\n");
-	close(sockfd);
+	close(client_socket);
+	free(cookie);
 }
