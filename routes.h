@@ -1,5 +1,6 @@
 #ifndef ROUTES_H
 #define ROUTES_H
+// 324CC Stefan CALMAC
 
 #define ROUTE_ADMIN_LOGIN        "/api/v1/tema/admin/login"
 #define ROUTE_ADMIN_LOGOUT       "/api/v1/tema/admin/logout"
@@ -10,6 +11,5 @@
 #define ROUTE_MANAGE_MOVIE       "/api/v1/tema/library/movies"
 #define ROUTE_MANAGE_COLLECTIONS "/api/v1/tema/library/collections"
 #define PAYLOAD_APP_JSON         "application/json"
-// …and so on for every endpoint
 
 #endif // ROUTES_H
